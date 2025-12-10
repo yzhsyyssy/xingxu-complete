@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>我的 - 星叙</title>
+  <link rel="stylesheet" href="./common.css" />
+  <style>
+    .container { min-height: 100vh; position: relative; padding-bottom: 70px; }
+    .settings { position: relative; z-index: 1; width: min(90%, 800px); margin: 0 auto; }
+    .item { height: 56px; border: 1px solid rgba(74,59,94,.5); border-radius: 8px; background: rgba(46,46,46,.8); display:flex; align-items:center; justify-content:space-between; padding: 0 14px; margin: 10px 0 }
+    .logout { margin-top: 20px; display:flex; justify-content:center }
+    .favorites-list { max-height: 60vh; overflow:auto }
+    .fav { margin-bottom: 12px; padding: 12px; background: rgba(46,46,46,.8); border-left: 3px solid #4A3B5E; border-radius: 8px; position:relative }
+    .fav .rm { position:absolute; top: 10px; right: 10px; width:28px; height:28px; border-radius:50%; background: rgba(74,59,94,.2); display:flex; align-items:center; justify-content:center }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="star-bg" id="stars"></div>
+    <div class="header-section" style="height: 30vh">
+      <div class="star-id" id="id"></div>
+      <div class="title">我的星空</div>
+      <div class="subtitle">属于你的宇宙角落</div>
+    </div>
+    <div class="settings">
+      <div class="item" id="myId"><div class="row"><div class="icon">★</div><div>我的编号</div></div><div id="idPreview"></div></div>
+      <div class="item" id="myFav"><div class="row"><div class="icon" style="color:#FFD700">⭐</div><div>我的收藏</div></div><div id="favCount"></div></div>
+      <div class="item" id="privacy"><div class="row"><div class="icon">🔒</div><div>隐私设置</div></div><div>›</div></div>
+      <div class="item" id="about"><div class="row"><div class="icon">ℹ</div><div>关于星叙</div></div><div>›</div></div>
+      <div class="logout"><button class="btn ghost" id="logoutBtn">退出登录</button></div>
+    </div>
+
+    <!-- id modal -->
+    <div class="modal" id="idModal"><div class="panel" style="text-align:center"><div class="title">你的星星编号</div><div class="title" id="idFull" style="margin:10px 0"></div><button class="btn" id="copy">复制</button></div></div>
+    <!-- fav modal -->
+    <div class="modal" id="favModal">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px"><div class="title">我的星语收藏</div><button class="btn ghost" id="closeFav">×</button></div>
+        <div class="favorites-list" id="favList"></div>
+        <div id="favEmpty" class="col" style="align-items:center; display:none"><div>还没有收藏的星语</div><div class="subtitle">探索星语瓶，收藏喜欢的内容</div><button class="btn" id="goBottle">探索星语</button></div>
+      </div>
+    </div>
+
+    <!-- logout modal -->
+    <div class="modal" id="logoutModal"><div class="panel" style="text-align:center"><div class="title">确定退出登录？</div><div class="row" style="justify-content:space-around"><button class="btn ghost" id="cancelLogout">取消</button><button class="btn" id="confirmLogout">确认</button></div></div></div>
+
+    <div class="tabbar"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./main.js"></script>
+  <script>
+    const { generateStars, renderTabBar, ensureStarId, getStarDigits, loadFavorites, saveFavorites, showToast, openModal, closeModal, copyText, navigate, storage } = window.WebApp
+    generateStars(document.getElementById('stars'), 60, true)
+    renderTabBar(4)
+    const id = ensureStarId(); document.getElementById('id').textContent = id; document.getElementById('idPreview').textContent = id
+
+    function refreshFav(){
+      const fav = loadFavorites(); document.getElementById('favCount').textContent = fav.length>0?fav.length:''
+    }
+    refreshFav()
+
+    // id copy
+    document.getElementById('myId').onclick = () => { document.getElementById('idFull').textContent = ensureStarId(); openModal('#idModal') }
+    document.getElementById('copy').onclick = () => { copyText(ensureStarId()); closeModal('#idModal') }
+    document.getElementById('idModal').addEventListener('click', (e)=>{ if (e.target.id==='idModal') closeModal('#idModal') })
+
+    // favorites
+    document.getElementById('myFav').onclick = () => {
+      const box = document.getElementById('favList'); box.innerHTML=''
+      const fav = loadFavorites()
+      document.getElementById('favEmpty').style.display = fav.length? 'none' : 'flex'
+      fav.forEach((b, i)=>{
+        const el = document.createElement('div')
+        el.className = 'fav'
+        el.innerHTML = `<div class="subtitle" style="margin-bottom:8px">${b.date}</div><div>${b.content}</div><div class="subtitle" style="text-align:right;margin-top:8px">来自 HD ${b.senderId}</div><div class="rm" data-i="${i}">★</div>`
+        el.addEventListener('click', (e)=>{
+          const rm = e.target.closest('[data-i]')
+          if (rm){ fav.splice(Number(rm.dataset.i), 1); saveFavorites(fav); showToast('已从收藏中移除'); refreshFav(); document.getElementById('myFav').click() }
+        })
+        box.appendChild(el)
+      })
+      openModal('#favModal')
+    }
+    document.getElementById('closeFav').onclick = () => closeModal('#favModal')
+    document.getElementById('goBottle').onclick = () => { closeModal('#favModal'); navigate('bottle.html') }
+
+    // privacy / about
+    document.getElementById('privacy').onclick = () => showToast('隐私设置功能开发中')
+    document.getElementById('about').onclick = () => showToast('关于星叙 v1.0.0')
+
+    // logout
+    document.getElementById('logoutBtn').onclick = () => openModal('#logoutModal')
+    document.getElementById('cancelLogout').onclick = () => closeModal('#logoutModal')
+    document.getElementById('confirmLogout').onclick = () => { storage.remove('starId'); storage.remove('loginStatus'); navigate('splash.html') }
+  </script>
+</body>
+</html>
+
+

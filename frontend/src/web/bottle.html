@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>星语瓶 - 星叙</title>
+  <link rel="stylesheet" href="./common.css" />
+  <style>
+    .container { min-height: 100vh; position: relative; padding-bottom: 70px; }
+    .bottle-card { position: relative; max-height: 220px; overflow: hidden }
+    .bottle-card.expanded { max-height: 50vh; background: rgba(74,59,94,.2); box-shadow: 0 2px 15px rgba(74,59,94,.3) }
+    .bottle-header { display:flex; align-items:center; gap:8px; margin-bottom:6px }
+    .bottle-date { color: var(--text-secondary); font-size: 12px }
+    .bottle-sender { position:absolute; right:12px; bottom:12px; font-size: 12px; color: var(--accent-purple); background: rgba(74,59,94,.2); padding: 2px 8px; border-radius: 10px }
+    .favorite { position:absolute; left: 12px; bottom:12px; width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; background: rgba(74,59,94,.2) }
+    .delete { position:absolute; top: 10px; right: 10px; width: 24px; height:24px; display:flex; align-items:center; justify-content:center; color:#B0B0B0 }
+    .comment-count { position:absolute; right: 12px; bottom: 12px; display:flex; gap:6px; align-items:center; background: rgba(74,59,94,.2); border-radius:12px; padding: 2px 8px }
+    .send-fab, .refresh-fab { position: fixed; right: min(30px, 6vw); width: 44px; height: 44px; border-radius: 50%; display:flex; align-items:center; justify-content:center; z-index: 120; }
+    .send-fab { bottom: calc(70px + 20px); background: var(--accent-purple); }
+    .refresh-fab { bottom: calc(70px + 20px + 60px); background: rgba(74,59,94,.8) }
+    .modal .panel .row { display:flex; gap: 10px; justify-content: flex-end }
+    .comments { max-height: 40vh; overflow:auto; margin: 10px 0 }
+    .comment { padding: 10px; background: rgba(46,46,46,.8); border-radius: 8px; border-left: 2px solid rgba(74,59,94,.5); margin-bottom:10px }
+    .comment .head { display:flex; justify-content:space-between; color: var(--text-secondary); font-size: 12px; margin-bottom: 6px }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="star-bg" id="stars"></div>
+    <div class="header-section">
+      <div class="star-id" id="id"></div>
+      <div class="title">星语瓶</div>
+      <div class="subtitle">将心事装进星语瓶，静待星空的温柔回音</div>
+    </div>
+    <div class="card-list" id="list"></div>
+
+    <button class="send-fab btn" id="openSend">+</button>
+    <button class="refresh-fab btn" id="refresh">↻</button>
+
+    <!-- Send modal -->
+    <div class="modal" id="sendModal">
+      <div class="panel">
+        <div class="title" style="text-align:center">写下你的星语</div>
+        <textarea id="sendText" placeholder="写下你的星语，等待回应..." maxlength="100"></textarea>
+        <div class="row"><button class="btn ghost" id="cancelSend">悄悄收起</button><button class="btn" id="confirmSend">送往星空</button></div>
+      </div>
+    </div>
+
+    <!-- Delete modal -->
+    <div class="modal" id="delModal"><div class="panel"><div class="title" style="text-align:center">将这瓶星语送回星空吗？</div><div class="row"><button class="btn ghost" id="cancelDel">再留一会</button><button class="btn" id="confirmDel">送回星空</button></div></div></div>
+
+    <!-- Comments modal -->
+    <div class="modal" id="cmtModal">
+      <div class="panel">
+        <div class="row" style="justify-content:space-between;margin-bottom:6px"><div class="title">共鸣回应</div><button class="btn ghost" id="closeCmt">×</button></div>
+        <div id="orig" style="background: rgba(74,59,94,.2); padding: 10px; border-radius: 8px; margin: 6px 0"></div>
+        <div class="comments" id="cmts"></div>
+        <div class="row"><input id="cmtInput" type="text" placeholder="写下你的共鸣..." /><button class="btn" id="sendCmt">发送</button></div>
+      </div>
+    </div>
+
+    <div class="tabbar"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./main.js"></script>
+  <script>
+    const { generateStars, renderTabBar, ensureStarId, getStarDigits, loadBottles, saveBottles, loadFavorites, saveFavorites, showToast } = window.WebApp
+    generateStars(document.getElementById('stars'), 60, true)
+    renderTabBar(2)
+    const starId = ensureStarId(); document.getElementById('id').textContent = starId
+
+    let bottles = loadBottles()
+    let expanded = -1
+    let deleteIndex = -1
+    let currentCmtIndex = -1
+
+    function renderList(){
+      const list = document.getElementById('list')
+      list.innerHTML = ''
+      bottles.forEach((b, i) => {
+        const el = document.createElement('div')
+        el.className = 'card bottle-card' + (expanded===i?' expanded':'')
+        const preview = expanded===i ? b.content : (b.content.substring(0, 20) + (b.content.length>20 ? '...' : ''))
+        el.innerHTML = `
+          <div class="bottle-header"><div class="bottle-icon">🍶</div><div class="bottle-date">${b.date}</div><div class="delete" data-del="${i}">×</div></div>
+          <div class="bottle-content">${preview}</div>
+          <div class="bottle-sender">来自 HD ${b.senderId} 的星语</div>
+          <div class="favorite" data-fav="${i}"><div class="icon" style="color:${b.favorited?'#FFD700':'rgba(255,255,255,.7)'}">★</div></div>
+          ${b.comments && b.comments.length>0 ? `<div class="comment-count" data-cmts="${i}">💬 <span>${b.comments.length}</span></div>` : ''}
+        `
+        el.addEventListener('click', (e)=>{
+          const del = e.target.closest('[data-del]')
+          const fav = e.target.closest('[data-fav]')
+          const cmts = e.target.closest('[data-cmts]')
+          if (del){ deleteIndex = Number(del.dataset.del); openModal('#delModal'); return }
+          if (fav){ const idx = Number(fav.dataset.fav); bottles[idx].favorited = !bottles[idx].favorited; saveFavorites(bottles.filter(x=>x.favorited)); saveBottles(bottles); showToast(bottles[idx].favorited?'已添加到收藏':'已取消收藏'); renderList(); return }
+          if (cmts){ currentCmtIndex = Number(cmts.dataset.cmts); openComments(currentCmtIndex); return }
+          expanded = expanded===i ? -1 : i; renderList()
+        })
+        list.appendChild(el)
+      })
+    }
+    renderList()
+
+    // send modal
+    document.getElementById('openSend').onclick = () => openModal('#sendModal')
+    document.getElementById('cancelSend').onclick = () => closeModal('#sendModal')
+    document.getElementById('confirmSend').onclick = () => {
+      const v = document.getElementById('sendText').value.trim()
+      if (!v) { showToast('请输入内容'); return }
+      const now = new Date(); const y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0'), hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0')
+      const b = { date: `${y}.${m}.${d} ${hh}:${mm}`, content: v, senderId: getStarDigits(), favorited:false, comments:[] }
+      bottles.unshift(b); saveBottles(bottles); closeModal('#sendModal'); showToast('你的星语瓶已飞向星空，静待回音'); renderList()
+    }
+
+    // delete
+    document.getElementById('cancelDel').onclick = () => closeModal('#delModal')
+    document.getElementById('confirmDel').onclick = () => { if (deleteIndex>=0){ bottles.splice(deleteIndex,1); saveBottles(bottles); showToast('星语已送回星空'); closeModal('#delModal'); expanded=-1; renderList() } }
+
+    // refresh random
+    document.getElementById('refresh').onclick = () => {
+      // generate 3 random bottles
+      const texts = [
+        '黄昏时刻，城市的灯光渐次亮起，像是宇宙中的星辰。每一盏灯背后，都是一个不为人知的故事。',
+        '今天在海边走了很久，听着浪声，看星星倒映在海面。有些问题，在大自然面前显得那么渺小。',
+        '午夜醒来，窗外月光如水。突然想起很久以前的一场告别，那时也是这样的月色。',
+        '下雨时总会想起你，因为你说过喜欢雨声。不知道在你的城市，是否也在下雨？',
+        '时间是最奇妙的东西，它能带走伤痛，也能让回忆变得温柔。',
+        '凌晨两点，整座城市仿佛只有我一个人醒着。这种时刻，思绪总是特别清晰。',
+      ]
+      const now = new Date(); const y=now.getFullYear()
+      const randomB = Array.from({length:3}, ()=>{
+        const d = new Date(now); d.setDate(d.getDate()-Math.floor(Math.random()*30))
+        const mm=String(d.getMonth()+1).padStart(2,'0'), dd=String(d.getDate()).padStart(2,'0'), hh=String(Math.floor(Math.random()*24)).padStart(2,'0'), mi=String(Math.floor(Math.random()*60)).padStart(2,'0')
+        return { date: `${y}.${mm}.${dd} ${hh}:${mi}`, content: texts[Math.floor(Math.random()*texts.length)], senderId: String(Math.floor(Math.random()*1e6)).padStart(6,'0'), favorited:false, comments:[] }
+      })
+      const fav = bottles.filter(b=>b.favorited)
+      bottles = [...randomB, ...fav]; saveBottles(bottles); showToast('发现新的星语瓶'); renderList()
+    }
+
+    // comments modal
+    function openComments(i){
+      const b = bottles[i]
+      document.getElementById('orig').innerHTML = `<div style="color:#B0B0B0;font-size:12px;margin-bottom:6px">${b.date} HD ${b.senderId}</div><div>${b.content}</div>`
+      renderComments(i)
+      openModal('#cmtModal')
+    }
+    function renderComments(i){
+      const box = document.getElementById('cmts'); box.innerHTML = ''
+      const b = bottles[i]
+      if (!Array.isArray(b.comments)) b.comments = []
+      b.comments.forEach(c => {
+        const el = document.createElement('div')
+        el.className = 'comment'
+        el.innerHTML = `<div class="head"><div>HD ${c.senderId}</div><div>${c.date}</div></div>` + (c.isImage?`<img src="${c.content}" style="max-width:220px;border-radius:6px" />`:`<div>${c.content}</div>`)
+        box.appendChild(el)
+      })
+    }
+    document.getElementById('closeCmt').onclick = () => closeModal('#cmtModal')
+    document.getElementById('sendCmt').onclick = () => {
+      if (currentCmtIndex<0) return
+      const input = document.getElementById('cmtInput')
+      const v = input.value.trim(); if (!v){ showToast('请输入内容'); return }
+      const now = new Date(); const mm=String(now.getMonth()+1).padStart(2,'0'), dd=String(now.getDate()).padStart(2,'0'), hh=String(now.getHours()).padStart(2,'0'), mi=String(now.getMinutes()).padStart(2,'0')
+      const c = { date: `${mm}.${dd} ${hh}:${mi}`, content: v, senderId: getStarDigits(), isImage:false }
+      bottles[currentCmtIndex].comments.push(c); saveBottles(bottles); input.value=''; showToast('共鸣已送出'); renderComments(currentCmtIndex); renderList()
+    }
+
+    // close modal when clicking background
+    document.getElementById('sendModal').addEventListener('click', (e)=>{ if (e.target.id==='sendModal') closeModal('#sendModal') })
+    document.getElementById('delModal').addEventListener('click', (e)=>{ if (e.target.id==='delModal') closeModal('#delModal') })
+    document.getElementById('cmtModal').addEventListener('click', (e)=>{ if (e.target.id==='cmtModal') closeModal('#cmtModal') })
+  </script>
+</body>
+</html>
+
+

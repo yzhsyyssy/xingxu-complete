@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>场景 - 星叙</title>
+  <link rel="stylesheet" href="./common.css" />
+  <style>
+    .container { min-height: 100vh; position: relative; padding-bottom: 70px; display:flex; flex-direction:column }
+    .scene-header { display:flex; align-items:center; justify-content: space-between; gap:10px; padding: 16px 20px; position: relative; z-index:1 }
+    .back { position:absolute; left: 12px; top:12px; width:36px; height:36px; border-radius:50%; background: rgba(46,46,46,.6); display:flex; align-items:center; justify-content:center; border: 1px solid rgba(255,255,255,.15) }
+    .chat { flex:1; overflow:auto; padding: 10px 20px; position: relative; z-index:1 }
+    .msg { max-width: 70%; margin: 10px 0; padding: 10px; border-radius: 8px; background: rgba(74,59,94,.3) }
+    .msg.self { margin-left:auto; background: rgba(74,59,94,.4) }
+    .msg .head { font-size: 12px; color: var(--text-secondary); margin-bottom: 4px }
+    .input { display:flex; gap: 10px; padding: 10px 20px; background: rgba(30,30,30,.8); border-top: 1px solid rgba(255,255,255,.1); position: relative; z-index:2 }
+    .action { width: 40px; height: 40px; display:flex; align-items:center; justify-content:center; }
+    .actions-popup { position: fixed; inset:0; display:none; align-items:center; justify-content:center; background: rgba(0,0,0,.5); z-index:200 }
+    .actions-popup.show { display:flex }
+    .actions-panel { background:#2A2A2A; border-radius:12px; overflow:hidden; width:min(70%, 420px) }
+    .actions-panel .item { padding: 14px; text-align:center; border-bottom: 1px solid rgba(255,255,255,.1) }
+  </style>
+</head>
+<body>
+  <div class="container" id="root">
+    <div class="star-bg" id="stars"></div>
+    <a class="back" id="back" title="返回">◀</a>
+    <div class="scene-header">
+      <div class="scene-title" id="title"></div>
+      <div class="scene-users" id="users"></div>
+      <button class="btn ghost" id="audio">音效</button>
+    </div>
+    <div class="chat" id="chat"></div>
+    <div class="input">
+      <input type="text" id="text" placeholder="说点什么..." />
+      <div class="action"><button class="btn" id="send">发送</button></div>
+      <div class="action"><button class="btn ghost" id="upload">图片</button></div>
+    </div>
+    <div class="actions-popup" id="popup">
+      <div class="actions-panel">
+        <div class="item" id="toggleStar">点亮星星</div>
+        <div class="item" id="report">举报</div>
+      </div>
+    </div>
+    <div class="tabbar"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./main.js"></script>
+  <script>
+    const { generateStars, renderTabBar, SCENES, navigate, storage, showToast, ensureStarId } = window.WebApp
+    generateStars(document.getElementById('stars'), 60)
+    renderTabBar(1)
+    ensureStarId()
+
+    const params = new URLSearchParams(location.search)
+    const sceneId = Number(params.get('id') || storage.get('currentSceneId') || 1)
+    storage.set('currentSceneId', sceneId)
+    const scene = SCENES.find(s => s.id === sceneId) || SCENES[0]
+    document.getElementById('title').textContent = scene.title
+    document.getElementById('users').textContent = `${scene.users}/20`
+
+    const chat = document.getElementById('chat')
+    function randomId() { return ['HD','ST','GX','YL'][Math.floor(Math.random()*4)] + ' ' + String(Math.floor(Math.random()*1e6)).padStart(6,'0') }
+    const contents = ['今天的星空真美','有人在吗？','感觉这个场景很温馨','一个人静静地听着','这个地方让我想起小时候','有时候孤独也是一种享受','喜欢这里的氛围','夜深人静的时候总是会想很多','雨声真的很治愈呢','这首曲子真好听']
+    const messages = Array.from({length:8},()=>({ senderId: randomId(), content: contents[Math.floor(Math.random()*contents.length)], self: Math.random()>0.8, starred: Math.random()>0.7, isImage:false }))
+
+    function renderMessages(){
+      chat.innerHTML = ''
+      messages.forEach((m,idx)=>{
+        const el = document.createElement('div')
+        el.className = 'msg' + (m.self ? ' self' : '')
+        el.innerHTML = `<div class="head">${m.senderId}${m.starred?' ★':''}</div>` + (m.isImage ? `<img src="${m.content}" style="max-width:220px;border-radius:6px" />` : `<div>${m.content}</div>`)
+        el.addEventListener('contextmenu', (e)=>{ e.preventDefault(); openActions(idx) })
+        el.addEventListener('long-press', ()=>openActions(idx))
+        el.addEventListener('mousedown', (e)=>{ if (e.button===2) openActions(idx) })
+        chat.appendChild(el)
+      })
+      chat.scrollTop = chat.scrollHeight
+    }
+    renderMessages()
+
+    document.getElementById('send').onclick = () => {
+      const v = document.getElementById('text').value.trim()
+      if (!v) return
+      const id = window.WebApp.getStarDigits() || '123456'
+      messages.push({ senderId: `HD ${id}`, content: v, self:true, starred:false, isImage:false })
+      document.getElementById('text').value = ''
+      renderMessages()
+    }
+
+    document.getElementById('upload').onclick = async () => {
+      const input = document.createElement('input')
+      input.type = 'file'; input.accept = 'image/*'
+      input.onchange = () => {
+        const file = input.files && input.files[0]; if (!file) return
+        const url = URL.createObjectURL(file)
+        const id = window.WebApp.getStarDigits() || '123456'
+        messages.push({ senderId: `HD ${id}`, content: url, self:true, starred:false, isImage:true })
+        renderMessages()
+      }
+      input.click()
+    }
+
+    // actions popup
+    const popup = document.getElementById('popup')
+    let selected = -1
+    function openActions(idx){ selected = idx; popup.classList.add('show') }
+    popup.addEventListener('click', (e)=>{ if (e.target===popup) popup.classList.remove('show') })
+    document.getElementById('toggleStar').onclick = ()=>{ if (selected>=0){ messages[selected].starred = !messages[selected].starred; renderMessages(); popup.classList.remove('show') } }
+    document.getElementById('report').onclick = ()=>{ showToast('举报成功'); popup.classList.remove('show') }
+
+    document.getElementById('back').onclick = () => navigate('gallery.html')
+    let playing = false
+    document.getElementById('audio').onclick = ()=>{ playing = !playing; showToast(`${scene.title}音效已${playing?'开启':'关闭'}`) }
+  </script>
+</body>
+</html>
+
+

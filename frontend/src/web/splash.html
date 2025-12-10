@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>星叙 - 开屏</title>
+  <link rel="stylesheet" href="./common.css" />
+  <style>
+    .splash { min-height: 100vh; position: relative; display: flex; flex-direction: column; }
+    .content { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; z-index: 1; text-align: center; padding: 0 24px; }
+    .time { font-size: clamp(20px, 8vh, 48px); font-weight: 200; letter-spacing: 2px; }
+    .welcome { font-size: clamp(18px, 6vh, 28px); font-weight: 300; }
+    .star-id { color: var(--text-secondary); font-size: clamp(14px, 4vh, 20px); letter-spacing: 1px; }
+    .footer { padding: 40px 0 80px; display: flex; flex-direction: column; gap: 16px; align-items: center; z-index: 1; }
+    .footer .slogan { color: var(--text-secondary); }
+    .row { gap: 12px; }
+  </style>
+</head>
+<body>
+  <div class="splash">
+    <div class="stars-container" id="stars"></div>
+    <div class="content">
+      <div class="time" id="time"></div>
+      <div class="welcome">欢迎来到星叙</div>
+      <div class="star-id" id="starId"></div>
+    </div>
+    <div class="footer">
+      <div class="slogan">每一颗星，都有故事</div>
+      <div class="row">
+        <button class="btn" id="loginBtn">登 录</button>
+        <button class="btn ghost" id="registerBtn">注 册</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="./main.js"></script>
+  <script>
+    const { generateStars, ensureStarId, navigate } = window.WebApp
+    const starId = ensureStarId()
+    document.getElementById('starId').textContent = `你的编号是 ${starId}`
+    generateStars(document.getElementById('stars'), 60)
+
+    function updateTime() {
+      const now = new Date()
+      const hh = String(now.getHours()).padStart(2,'0')
+      const mm = String(now.getMinutes()).padStart(2,'0')
+      const ss = String(now.getSeconds()).padStart(2,'0')
+      document.getElementById('time').textContent = `${hh}:${mm}:${ss}`
+    }
+    updateTime(); setInterval(updateTime, 1000)
+    document.getElementById('loginBtn').onclick = () => navigate('login.html')
+    document.getElementById('registerBtn').onclick = () => navigate('register.html')
+  </script>
+</body>
+</html>
+
+

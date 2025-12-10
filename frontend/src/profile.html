@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星河档案 - 0305</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #1E1E1E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B0B0B0;
+            --accent-blue: #2A3B5E;
+            --accent-purple: #4A3B5E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .prototype-section {
+            flex: 1 1 400px;
+            min-height: 700px;
+            background: linear-gradient(to bottom, var(--accent-purple), #1E1E1E);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .description-section {
+            flex: 1 1 400px;
+            padding: 20px;
+            background: #252525;
+            border-radius: 16px;
+        }
+
+        /* Profile Header */
+        .profile-header {
+            text-align: center;
+            padding: 40px 0;
+            position: relative;
+        }
+
+        .star-id {
+            font-size: 24px;
+            color: var(--text-primary);
+            margin-bottom: 10px;
+        }
+
+        .join-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        /* Timeline */
+        .timeline {
+            padding: 20px;
+            position: relative;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 30px;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--accent-purple);
+        }
+
+        .record {
+            margin-bottom: 30px;
+            margin-left: 50px;
+            position: relative;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+
+        .record:hover {
+            transform: translateX(5px);
+        }
+
+        .record::before {
+            content: '';
+            position: absolute;
+            left: -35px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            border: 2px solid var(--primary-bg);
+        }
+
+        .record-date {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .record-content {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: background 0.3s;
+        }
+
+        .record-content:hover {
+            background: rgba(74, 59, 94, 0.3);
+        }
+
+        .record-scene {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+        }
+
+        /* Add Button */
+        .add-button {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            width: 50px;
+            height: 50px;
+            border-radius: 25px;
+            background: var(--accent-purple);
+            border: none;
+            color: var(--text-primary);
+            font-size: 24px;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .add-button:hover {
+            transform: scale(1.1);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Description Styles */
+        .description-section h2 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .description-section h3 {
+            color: var(--text-primary);
+            margin: 20px 0 10px;
+        }
+
+        .description-section p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-purple);
+        }
+
+        /* Stars Background */
+        .stars {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Prototype Display -->
+        <section class="prototype-section">
+            <div class="stars" id="starsContainer"></div>
+            <div class="profile-header">
+                <div class="star-id">HD 123456</div>
+                <div class="join-date">加入于 2024.04.03</div>
+            </div>
+
+            <div class="timeline">
+                <div class="record">
+                    <div class="record-date">2024.04.03 23:17</div>
+                    <div class="record-content">
+                        今夜的星空格外明亮，仿佛能看见银河的尽头。
+                        <div class="record-scene">来自：星空独白</div>
+                    </div>
+                </div>
+
+                <div class="record">
+                    <div class="record-date">2024.04.03 22:45</div>
+                    <div class="record-content">
+                        深夜电台的音乐总能抚慰疲惫的心灵。
+                        <div class="record-scene">来自：深夜电台</div>
+                    </div>
+                </div>
+
+                <div class="record">
+                    <div class="record-date">2024.04.03 21:30</div>
+                    <div class="record-content">
+                        雨声滴答，思绪万千。
+                        <div class="record-scene">来自：雨中漫步</div>
+                    </div>
+                </div>
+            </div>
+
+            <button class="add-button">+</button>
+        </section>
+
+        <!-- Design Description -->
+        <section class="description-section">
+            <h2>个人档案设计说明</h2>
+            <p>星河档案 - 记录每一刻独特时光</p>
+
+            <h3>布局设计</h3>
+            <ul class="feature-list">
+                <li>顶部：个人星星编号与加入时间</li>
+                <li>中部：时间轴式记录展示</li>
+                <li>底部：悬浮添加按钮</li>
+            </ul>
+
+            <h3>交互特点</h3>
+            <ul class="feature-list">
+                <li>记录卡片悬停效果</li>
+                <li>时间轴动态视觉引导</li>
+                <li>添加按钮缩放动画</li>
+                <li>星光背景微光闪烁</li>
+            </ul>
+
+            <h3>视觉风格</h3>
+            <ul class="feature-list">
+                <li>深紫渐变背景，营造宇宙感</li>
+                <li>时间轴设计，突出时序性</li>
+                <li>卡片式布局，层次分明</li>
+                <li>星光点缀，增添氛围感</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        // 生成星星背景
+        function createStars() {
+            const container = document.getElementById('starsContainer');
+            for (let i = 0; i < 50; i++) {
+                const star = document.createElement('div');
+                star.className = 'star';
+                star.style.left = Math.random() * 100 + '%';
+                star.style.top = Math.random() * 100 + '%';
+                star.style.width = Math.random() * 2 + 'px';
+                star.style.height = star.style.width;
+                star.style.animationDelay = Math.random() * 3 + 's';
+                container.appendChild(star);
+            }
+        }
+
+        // 记录展开/收起
+        document.querySelectorAll('.record').forEach(record => {
+            record.addEventListener('click', () => {
+                record.style.transform = 'translateX(5px)';
+                setTimeout(() => {
+                    record.style.transform = 'translateX(0)';
+                }, 300);
+            });
+        });
+
+        // 添加新记录
+        document.querySelector('.add-button').addEventListener('click', () => {
+            alert('记录此刻功能将在完整版本中实现');
+        });
+
+        // 初始化
+        createStars();
+    </script>
+</body>
+</html> 

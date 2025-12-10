@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>登录 - 星叙</title>
+  <link rel="stylesheet" href="./common.css" />
+  <style>
+    .container { min-height: 100vh; position: relative; display: flex; flex-direction: column; }
+    .form-card { width: min(640px, 90%); margin: 0 auto; padding: 24px; background: rgba(46,46,46,.8); backdrop-filter: blur(10px); border: 1px solid var(--accent-purple); border-radius: 12px; z-index: 1; }
+    .group { margin: 10px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="star-bg" id="stars"></div>
+    <div class="header-section">
+      <div class="title">登录星叙</div>
+      <div class="subtitle">探索你的星空之旅</div>
+    </div>
+    <div class="form-card">
+      <div class="group"><input id="email" type="text" placeholder="输入邮箱" /></div>
+      <div class="group"><input id="pwd" type="password" placeholder="输入密码" /></div>
+      <div class="group"><button class="btn" id="login">进入星叙</button></div>
+      <div class="group"><small id="err" style="color:#5E3B4A"></small></div>
+    </div>
+    <div class="header-section" style="gap:10px;">
+      <div class="subtitle">每一颗星，都有故事</div>
+      <button class="btn ghost" id="toRegister">没有账号？去注册</button>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <script src="./main.js"></script>
+  <script>
+    const { generateStars, storage, navigate, showToast, ensureStarId } = window.WebApp
+    generateStars(document.getElementById('stars'), 60)
+
+    function isValidEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v) }
+    const err = document.getElementById('err')
+    document.getElementById('login').onclick = () => {
+      const email = document.getElementById('email').value.trim()
+      const pwd = document.getElementById('pwd').value.trim()
+      if (!email || !pwd) { err.textContent = '请填写完整信息'; setTimeout(()=>err.textContent='', 2000); return }
+      if (!isValidEmail(email)) { err.textContent = '请输入有效邮箱'; setTimeout(()=>err.textContent='', 2000); return }
+      // simulate login: assign starId & store email
+      const id = ensureStarId()
+      storage.set('userEmail', email)
+      navigate('gallery.html')
+    }
+    document.getElementById('toRegister').onclick = () => navigate('register.html')
+  </script>
+</body>
+</html>
+
+

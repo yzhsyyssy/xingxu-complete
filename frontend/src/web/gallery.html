@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>时空画廊 - 星叙</title>
+  <link rel="stylesheet" href="./common.css" />
+  <style>
+    .container { min-height: 100vh; position: relative; padding-bottom: 70px; }
+    .nav { position: relative; z-index: 1; display:flex; align-items:center; justify-content: space-between; padding: 16px 20px; }
+    .welcome { position:absolute; left:50%; transform: translateX(-50%); opacity:.85 }
+    .scene-card { position: relative; overflow: hidden; height: 28vh; }
+    .scene-title { font-size: 18px; letter-spacing: 2px; }
+    .scene-users { color: var(--text-secondary); font-size: 12px; display:flex; align-items:center; gap:6px }
+    .enter { align-self: center; margin-top: auto; }
+    .settings-menu { position: fixed; inset: 0; background: rgba(0,0,0,.5); display:none; justify-content:flex-end; z-index:150; }
+    .settings-menu.show { display:flex }
+    .menu-panel { width: 40%; min-width: 260px; background: #2A2A2A; padding: 16px; }
+    .menu-item { padding: 12px 8px; border-radius: 6px; }
+    .menu-item:active { background: rgba(255,255,255,.08) }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="star-bg" id="stars"></div>
+    <div class="nav">
+      <div class="star-id" id="id"></div>
+      <div class="welcome">欢迎回到星叙</div>
+      <button class="btn ghost" id="settings">设置</button>
+    </div>
+    <div class="header-section"><div class="title">时空画廊</div></div>
+    <div class="card-list" id="list"></div>
+    <div class="settings-menu" id="menu">
+      <div class="menu-panel">
+        <div class="menu-item" id="logout">退出登录</div>
+        <div class="menu-item" id="feedback">意见反馈</div>
+      </div>
+    </div>
+    <div class="tabbar"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./main.js"></script>
+  <script>
+    const { generateStars, renderTabBar, SCENES, navigate, showToast, storage, ensureStarId } = window.WebApp
+    generateStars(document.getElementById('stars'), 60)
+    const id = ensureStarId()
+    document.getElementById('id').textContent = id
+
+    const list = document.getElementById('list')
+    SCENES.forEach(s => {
+      const card = document.createElement('div')
+      card.className = 'card scene-card'
+      card.style.background = s.gradient
+      card.innerHTML = `
+        <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,.1) 0%, rgba(0,0,0,.4) 100%);"></div>
+        <div style="position:relative;z-index:1;height:100%;display:flex;flex-direction:column;padding:16px">
+          <div style="display:flex;align-items:center;justify-content:space-between">
+            <div class="scene-title">${s.title}</div>
+            <div> </div>
+          </div>
+          <div style="margin:10px 0 auto; color:rgba(255,255,255,.85)">${s.title==='深夜电台'?'在宁静的深夜，与陌生人分享心事':(s.title==='雨中漫步'?'雨声伴随着脚步，一起走进回忆':'仰望星空，倾听内心最真实的声音')}</div>
+          <div class="scene-users"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:rgba(74,59,94,.7)"></span>${s.users}人正在此</div>
+          <div class="enter"><button class="btn enter-btn">进入时空</button></div>
+        </div>
+      `
+      card.addEventListener('click', () => {
+        storage.set('currentSceneId', s.id)
+        navigate(`scene.html?id=${s.id}`)
+      })
+      list.appendChild(card)
+    })
+
+    // settings
+    const menu = document.getElementById('menu')
+    document.getElementById('settings').onclick = () => menu.classList.add('show')
+    menu.addEventListener('click', (e)=>{ if (e.target.id==='menu') menu.classList.remove('show') })
+    document.getElementById('logout').onclick = () => { storage.remove('starId'); navigate('splash.html') }
+    document.getElementById('feedback').onclick = () => { menu.classList.remove('show'); showToast('感谢您的反馈') }
+
+    renderTabBar(0)
+  </script>
+</body>
+</html>
+
+

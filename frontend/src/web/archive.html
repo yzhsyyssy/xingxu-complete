@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>星河档案 - 星叙</title>
+  <link rel="stylesheet" href="./common.css" />
+  <style>
+    .container { min-height: 100vh; position: relative; padding-bottom: 70px; }
+    .archive-card { position: relative; max-height: 180px; overflow:hidden }
+    .archive-card.expanded { max-height: 50vh; background: rgba(74,59,94,.2) }
+    .archive-date { color: var(--text-secondary); font-size: 12px; margin-bottom: 6px }
+    .archive-scene { position:absolute; right:12px; bottom:12px; font-size: 12px; color: var(--accent-purple); background: rgba(74,59,94,.2); padding: 2px 8px; border-radius: 10px }
+    .delete { position:absolute; top: 10px; right: 10px; width: 24px; height:24px; display:flex; align-items:center; justify-content:center; color:#B0B0B0 }
+    .edit { position:absolute; right:12px; bottom:12px; font-size: 12px; color: var(--accent-purple); background: rgba(74,59,94,.2); padding: 2px 8px; border-radius: 10px }
+    .add-fab { position: fixed; right: min(30px, 6vw); bottom: calc(70px + 20px); width: 44px; height: 44px; border-radius: 50%; background: var(--accent-purple); display:flex; align-items:center; justify-content:center; z-index: 120 }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="star-bg" id="stars"></div>
+    <div class="header-section">
+      <div class="star-id" id="id"></div>
+      <div class="title">星河档案</div>
+      <div class="subtitle">你的星空记忆</div>
+    </div>
+    <div class="card-list" id="list"></div>
+    <button class="add-fab btn" id="openAdd">+</button>
+
+    <!-- add modal -->
+    <div class="modal" id="addModal">
+      <div class="panel">
+        <textarea id="addText" placeholder="记录此刻..."></textarea>
+        <div class="row"><label for="sceneSel">场景：</label><select id="sceneSel"><option>深夜电台</option><option>雨中漫步</option><option>星空独白</option></select></div>
+        <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="cancelAdd">取消</button><button class="btn" id="confirmAdd">保存</button></div>
+      </div>
+    </div>
+
+    <!-- edit modal -->
+    <div class="modal" id="editModal">
+      <div class="panel">
+        <textarea id="editText"></textarea>
+        <div class="row" style="justify-content:flex-end"><button class="btn ghost" id="cancelEdit">取消</button><button class="btn" id="confirmEdit">保存</button></div>
+      </div>
+    </div>
+
+    <!-- delete modal -->
+    <div class="modal" id="delModal"><div class="panel"><div class="title" style="text-align:center">删除这条记忆？</div><div class="row" style="justify-content:space-between"><button class="btn ghost" id="cancelDel">取消</button><button class="btn" id="confirmDel">确认</button></div></div></div>
+
+    <div class="tabbar"></div>
+  </div>
+  <div class="toast" id="toast"></div>
+  <script src="./main.js"></script>
+  <script>
+    const { generateStars, renderTabBar, ensureStarId, loadArchives, saveArchives, showToast } = window.WebApp
+    generateStars(document.getElementById('stars'), 60, true)
+    renderTabBar(3)
+    const id = ensureStarId(); document.getElementById('id').textContent = id
+    let archives = loadArchives()
+    let expanded = -1
+    let editIndex = -1
+    let delIndex = -1
+
+    function render(){
+      const list = document.getElementById('list'); list.innerHTML = ''
+      archives.forEach((a,i)=>{
+        const el = document.createElement('div'); el.className = 'card archive-card' + (expanded===i?' expanded':'')
+        const preview = expanded===i ? a.content : (a.content.substring(0,20) + (a.content.length>20?'...':''))
+        el.innerHTML = `
+          <div class="archive-date">${a.date}</div>
+          <div class="archive-preview">${preview}</div>
+          <div class="archive-scene">${a.scene}</div>
+          <div class="delete" data-del="${i}">×</div>
+          ${expanded===i?`<div class="edit" data-edit="${i}">编辑</div>`:''}
+        `
+        el.addEventListener('click', (e)=>{
+          const del = e.target.closest('[data-del]')
+          const edit = e.target.closest('[data-edit]')
+          if (del){ delIndex = Number(del.dataset.del); openModal('#delModal'); return }
+          if (edit){ editIndex = Number(edit.dataset.edit); document.getElementById('editText').value = archives[editIndex].content; openModal('#editModal'); return }
+          expanded = expanded===i ? -1 : i; render()
+        })
+        list.appendChild(el)
+      })
+    }
+    render()
+
+    // add
+    document.getElementById('openAdd').onclick = () => { document.getElementById('addText').value=''; openModal('#addModal') }
+    document.getElementById('cancelAdd').onclick = () => closeModal('#addModal')
+    document.getElementById('confirmAdd').onclick = () => {
+      const text = document.getElementById('addText').value.trim(); if (!text){ showToast('请输入内容'); return }
+      const scene = document.getElementById('sceneSel').value
+      const now = new Date(); const y=now.getFullYear(), m=String(now.getMonth()+1).padStart(2,'0'), d=String(now.getDate()).padStart(2,'0'), hh=String(now.getHours()).padStart(2,'0'), mm=String(now.getMinutes()).padStart(2,'0')
+      archives.unshift({ date: `${y}.${m}.${d} ${hh}:${mm}`, content: text, scene })
+      saveArchives(archives); closeModal('#addModal'); showToast('已记录'); render()
+    }
+
+    // edit
+    document.getElementById('cancelEdit').onclick = () => closeModal('#editModal')
+    document.getElementById('confirmEdit').onclick = () => {
+      const text = document.getElementById('editText').value.trim(); if (!text){ showToast('内容不能为空'); return }
+      if (editIndex>=0){ archives[editIndex].content = text; saveArchives(archives); closeModal('#editModal'); showToast('已保存'); render() }
+    }
+
+    // delete
+    document.getElementById('cancelDel').onclick = () => closeModal('#delModal')
+    document.getElementById('confirmDel').onclick = () => {
+      if (delIndex>=0){ archives.splice(delIndex,1); saveArchives(archives); showToast('已删除'); closeModal('#delModal'); expanded=-1; render() }
+    }
+  </script>
+</body>
+</html>
+
+

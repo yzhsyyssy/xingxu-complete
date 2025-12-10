@@ -1,0 +1,80 @@
+{
+  "pages": [
+    {
+      "path": "pages/splash/index",
+      "style": {
+        "navigationBarTitleText": "星叙",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/gallery/index",
+      "style": {
+        "navigationBarTitleText": "星叙",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/register/index",
+      "style": {
+        "navigationBarTitleText": "加入星叙",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/login/index",
+      "style": {
+        "navigationBarTitleText": "登录星叙",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/scene/index",
+      "style": {
+        "navigationBarTitleText": "星叙",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/bottle/index",
+      "style": {
+        "navigationBarTitleText": "星语瓶",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/archive/index",
+      "style": {
+        "navigationBarTitleText": "星叙档案",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/user/index",
+      "style": {
+        "navigationBarTitleText": "个人中心",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/privacy/index",
+      "style": {
+        "navigationBarTitleText": "隐私设置",
+        "navigationStyle": "custom"
+      }
+    },
+    {
+      "path": "pages/about/index",
+      "style": {
+        "navigationBarTitleText": "关于星叙",
+        "navigationStyle": "custom"
+      }
+    }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "white",
+    "navigationBarTitleText": "星叙",
+    "navigationBarBackgroundColor": "#1E1E1E",
+    "backgroundColor": "#1E1E1E"
+  }
+}

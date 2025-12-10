@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星空独白 - 0305</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-bg: #1E1E1E;
+            --text-primary: #FFFFFF;
+            --text-secondary: #B0B0B0;
+            --accent-blue: #2A3B5E;
+            --accent-purple: #4A3B5E;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans SC', sans-serif;
+            background: var(--primary-bg);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 40px;
+        }
+
+        .prototype-section {
+            flex: 1 1 400px;
+            min-height: 700px;
+            background: linear-gradient(135deg, var(--accent-purple), #1E1E1E);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .description-section {
+            flex: 1 1 400px;
+            padding: 20px;
+            background: #252525;
+            border-radius: 16px;
+        }
+
+        /* Room Header */
+        .room-header {
+            height: 60px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .room-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        .room-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .online-count {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .audio-control {
+            width: 24px;
+            height: 24px;
+            cursor: pointer;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+        .audio-control:hover {
+            opacity: 1;
+        }
+
+        /* Chat Area */
+        .chat-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            margin: 10px 0;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 8px;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            max-width: 80%;
+        }
+
+        .message.received {
+            margin-right: auto;
+        }
+
+        .message.sent {
+            margin-left: auto;
+            background: var(--accent-purple);
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .message-header {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-bottom: 4px;
+        }
+
+        .message-content {
+            font-size: 14px;
+            line-height: 1.4;
+        }
+
+        .star-button {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+            margin-left: 8px;
+            opacity: 0.5;
+            transition: 0.3s;
+        }
+
+        .star-button:hover,
+        .star-button.active {
+            opacity: 1;
+            color: var(--accent-purple);
+        }
+
+        /* Input Area */
+        .input-area {
+            height: 60px;
+            display: flex;
+            gap: 10px;
+            padding: 10px;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            border-radius: 8px;
+        }
+
+        .message-input {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            color: var(--text-primary);
+            font-size: 14px;
+        }
+
+        .message-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+        }
+
+        .action-button {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid var(--accent-purple);
+            border-radius: 4px;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .action-button:hover {
+            background: var(--accent-purple);
+        }
+
+        /* Description Styles */
+        .description-section h2 {
+            color: var(--text-primary);
+            margin-bottom: 15px;
+        }
+
+        .description-section h3 {
+            color: var(--text-primary);
+            margin: 20px 0 10px;
+        }
+
+        .description-section p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            color: var(--text-secondary);
+            font-size: 14px;
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .feature-list li::before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--accent-purple);
+        }
+
+        /* Scrollbar */
+        .chat-area::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .chat-area::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chat-area::-webkit-scrollbar-thumb {
+            background: var(--accent-purple);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Prototype Display -->
+        <section class="prototype-section">
+            <div class="room-header">
+                <div class="room-title">星空独白</div>
+                <div class="room-info">
+                    <div class="online-count">15/20</div>
+                    <svg class="audio-control" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 5L6 9H2V15H6L11 19V5Z" />
+                        <path d="M15.54 8.46C16.4774 9.39764 17.0039 10.6692 17.0039 12C17.0039 13.3308 16.4774 14.6024 15.54 15.54" />
+                        <path d="M18.24 5.76C19.9274 7.44741 20.8571 9.67721 20.8571 12C20.8571 14.3228 19.9274 16.5526 18.24 18.24" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="chat-area">
+                <div class="message received">
+                    <div class="message-header">HD 789012</div>
+                    <div class="message-content">今晚的星空真美</div>
+                    <svg class="star-button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                    </svg>
+                </div>
+
+                <div class="message sent">
+                    <div class="message-header">HD 123456 (你)</div>
+                    <div class="message-content">是啊，特别适合独处</div>
+                </div>
+
+                <div class="message received">
+                    <div class="message-header">HD 345678</div>
+                    <div class="message-content">这里总能找到内心的平静</div>
+                    <svg class="star-button" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z" />
+                    </svg>
+                </div>
+            </div>
+
+            <div class="input-area">
+                <input type="text" class="message-input" placeholder="说点什么...">
+                <div class="action-buttons">
+                    <button class="action-button">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13" />
+                            <path d="M22 2L15 22L11 13L2 9L22 2Z" />
+                        </svg>
+                    </button>
+                    <button class="action-button">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2C6.48 2 2 6.48 2 12C2 17.52 6.48 22 12 22C17.52 22 22 17.52 22 12" />
+                            <path d="M22 2L12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Design Description -->
+        <section class="description-section">
+            <h2>场景房间设计说明</h2>
+            <p>星空独白 - 实时互动空间</p>
+
+            <h3>布局设计</h3>
+            <ul class="feature-list">
+                <li>顶部：场景信息与音效控制</li>
+                <li>中部：消息流区域，支持滚动</li>
+                <li>底部：输入区域与功能按钮</li>
+            </ul>
+
+            <h3>交互特点</h3>
+            <ul class="feature-list">
+                <li>消息区分收发，视觉差异化</li>
+                <li>"点亮星星"功能，轻量互动</li>
+                <li>实时人数显示，营造氛围</li>
+                <li>背景音效控制，一键切换</li>
+            </ul>
+
+            <h3>视觉效果</h3>
+            <ul class="feature-list">
+                <li>深紫渐变背景，呼应星空主题</li>
+                <li>磨砂玻璃效果，层次分明</li>
+                <li>简约图标设计，突出内容</li>
+                <li>柔和的动画过渡效果</li>
+            </ul>
+        </section>
+    </div>
+
+    <script>
+        // 音频控制
+        const audioControl = document.querySelector('.audio-control');
+        let isPlaying = true;
+        audioControl.addEventListener('click', () => {
+            isPlaying = !isPlaying;
+            audioControl.style.opacity = isPlaying ? 0.7 : 0.3;
+        });
+
+        // 星星点亮
+        document.querySelectorAll('.star-button').forEach(button => {
+            button.addEventListener('click', (e) => {
+                e.stopPropagation();
+                button.classList.toggle('active');
+            });
+        });
+
+        // 发送消息
+        const messageInput = document.querySelector('.message-input');
+        const sendButton = document.querySelector('.action-button');
+        
+        sendButton.addEventListener('click', () => {
+            const message = messageInput.value.trim();
+            if (message) {
+                const chatArea = document.querySelector('.chat-area');
+                const newMessage = document.createElement('div');
+                newMessage.className = 'message sent';
+                newMessage.innerHTML = `
+                    <div class="message-header">HD 123456 (你)</div>
+                    <div class="message-content">${message}</div>
+                `;
+                chatArea.appendChild(newMessage);
+                messageInput.value = '';
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                sendButton.click();
+            }
+        });
+    </script>
+</body>
+</html> 
