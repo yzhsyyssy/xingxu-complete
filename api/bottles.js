@@ -29,14 +29,6 @@ module.exports = async function(req, res) {
             }
           ],
           favorited: false
-        },
-        {
-          id: '2',
-          content: '深夜里听着钢琴曲，窗外下着小雨。突然很想念一个人，却不敢联系。把这份思念放进星语瓶，希望能漂到你的星球。',
-          userId: '783421',
-          date: '2025.04.01 23:30',
-          comments: [],
-          favorited: false
         }
       ]
       
@@ -46,37 +38,6 @@ module.exports = async function(req, res) {
       })
     } catch (error) {
       console.error('获取星语瓶错误:', error)
-      return res.status(500).json({ error: 'Internal server error' })
-    }
-  }
-  
-  // POST请求 - 创建新星语瓶
-  if (req.method === 'POST') {
-    try {
-      const body = JSON.parse(req.body)
-      const { content, userId } = body
-      
-      if (!content || !userId) {
-        return res.status(400).json({ error: 'Missing content or userId' })
-      }
-      
-      // 创建新星语瓶
-      const newBottle = {
-        id: Date.now().toString(),
-        content,
-        userId,
-        date: new Date().toLocaleDateString('zh-CN').replace(/\//g, '.') + ' ' + new Date().toTimeString().slice(0, 5),
-        comments: [],
-        favorited: false
-      }
-      
-      return res.status(201).json({ 
-        success: true, 
-        bottle: newBottle,
-        message: '星语瓶已发送' 
-      })
-    } catch (error) {
-      console.error('发送星语瓶错误:', error)
       return res.status(500).json({ error: 'Internal server error' })
     }
   }

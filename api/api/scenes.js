@@ -1,17 +1,17 @@
-// 场景API
-export default async function handler(req, res) {
+// 场景API - Vercel Serverless Function
+module.exports = async function(req, res) {
   // 设置CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
-  const { method } = req
-
-  if (method === 'OPTIONS') {
+  // 处理预检请求
+  if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 
-  if (method === 'GET') {
+  // 只处理GET请求
+  if (req.method === 'GET') {
     try {
       // 返回场景数据
       const scenes = [
@@ -38,7 +38,7 @@ export default async function handler(req, res) {
         }
       ]
       
-      return res.json({ 
+      return res.status(200).json({ 
         success: true, 
         scenes 
       })
@@ -48,5 +48,6 @@ export default async function handler(req, res) {
     }
   }
   
+  // 其他方法不被支持
   return res.status(405).json({ error: 'Method not allowed' })
 }

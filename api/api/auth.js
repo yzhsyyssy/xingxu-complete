@@ -1,19 +1,20 @@
-// 用户认证API
-export default async function handler(req, res) {
+// 用户认证API - Vercel Serverless Function
+module.exports = async function(req, res) {
   // 设置CORS
   res.setHeader('Access-Control-Allow-Origin', '*')
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE')
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization')
 
-  const { method } = req
-
-  if (method === 'OPTIONS') {
+  // 处理预检请求
+  if (req.method === 'OPTIONS') {
     return res.status(200).end()
   }
 
-  if (method === 'POST') {
+  // 只处理POST请求
+  if (req.method === 'POST') {
     try {
-      const { email } = req.body
+      const body = JSON.parse(req.body)
+      const { email } = body
       
       // 简单验证邮箱
       if (!email || !email.includes('@')) {
@@ -23,9 +24,8 @@ export default async function handler(req, res) {
       // 生成星号ID
       const userId = 'HD' + Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
       
-      // 实际项目中这里应该保存到数据库
-      // 现在只是返回生成的ID
-      return res.json({ 
+      // 返回生成的ID
+      return res.status(200).json({ 
         success: true, 
         userId,
         message: '登录成功'
@@ -36,5 +36,6 @@ export default async function handler(req, res) {
     }
   }
   
+  // 其他方法不被支持
   return res.status(405).json({ error: 'Method not allowed' })
 }
