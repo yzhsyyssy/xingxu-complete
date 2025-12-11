@@ -6,7 +6,7 @@ const API_CONFIG = {
   },
   // 生产环境使用Vercel部署的API
   production: {
-    baseURL: 'https://xingxu-complete-g0nfjk2b5-yzhsyys-projects.vercel.app' // 已更新为您的实际API地址
+    baseURL: 'https://xingxu-complete-g0nfjk2b5-yzhsyys-projects.vercel.app' // Vercel后端地址
   }
 }
 
