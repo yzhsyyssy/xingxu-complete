@@ -1,91 +1,88 @@
-// API请求工具类
-// 在实际项目中，您需要将API_BASE_URL替换为您的Vercel部署地址
-
-// 开发环境使用本地地址，生产环境使用线上地址
-const API_BASE_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:3000'  // 本地开发时可以使用vercel dev
-  : 'https://your-api-name.vercel.app'  // 替换为您的Vercel实际地址
-
-export default {
-  // 用户认证
-  async login(email) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/auth`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email })
-      })
-      
-      const data = await response.json()
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '登录失败')
-      }
-      
-      return data
-    } catch (error) {
-      console.error('登录API错误:', error)
-      throw error
-    }
+// API配置
+const API_CONFIG = {
+  // 开发环境使用本地API
+  development: {
+    baseURL: 'http://localhost:3000'
   },
+  // 生产环境使用Vercel部署的API
+  production: {
+    baseURL: 'https://xingxu-complete-g0nfjk2b5-yzhsyys-projects.vercel.app' // 已更新为您的实际API地址
+  }
+}
 
-  // 获取场景列表
-  async getScenes() {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/scenes`)
-      const data = await response.json()
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '获取场景失败')
-      }
-      
-      return data
-    } catch (error) {
-      console.error('获取场景API错误:', error)
-      throw error
+// 获取当前环境的API配置
+const getAPIConfig = () => {
+  // 在实际部署中，可能需要通过环境变量或其他方式判断环境
+  // 这里暂时使用生产环境配置
+  return API_CONFIG.production
+}
+
+// API请求封装
+class API {
+  constructor() {
+    this.config = getAPIConfig()
+  }
+
+  // 通用请求方法
+  async request(endpoint, options = {}) {
+    const url = `${this.config.baseURL}${endpoint}`
+    
+    const config = {
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers
+      },
+      ...options
     }
-  },
 
-  // 获取星语瓶
-  async getBottles() {
     try {
-      const response = await fetch(`${API_BASE_URL}/api/bottles`)
+      const response = await fetch(url, config)
       const data = await response.json()
       
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '获取星语瓶失败')
+      if (!response.ok) {
+        throw new Error(data.error || `HTTP error! status: ${response.status}`)
       }
       
       return data
     } catch (error) {
-      console.error('获取星语瓶API错误:', error)
-      throw error
-    }
-  },
-
-  // 发送星语瓶
-  async sendBottle(content, userId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/bottles`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content, userId })
-      })
-      
-      const data = await response.json()
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '发送星语瓶失败')
-      }
-      
-      return data
-    } catch (error) {
-      console.error('发送星语瓶API错误:', error)
+      console.error('API请求错误:', error)
       throw error
     }
   }
+
+  // 获取星语瓶列表
+  async getBottles() {
+    return this.request('/api/bottles')
+  }
+
+  // 发送星语瓶
+  async sendBottle(content, userId) {
+    return this.request('/api/bottles', {
+      method: 'POST',
+      body: JSON.stringify({ content, userId })
+    })
+  }
+
+  // 用户认证
+  async authenticate(email) {
+    return this.request('/api/auth', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    })
+  }
+
+  // 获取场景列表
+  async getScenes() {
+    return this.request('/api/scenes')
+  }
+
+  // 获取场景详情
+  async getScene(id) {
+    return this.request(`/api/scenes/${id}`)
+  }
 }
+
+// 创建API实例
+const api = new API()
+
+export default api

@@ -1,0 +1,16 @@
+{
+  "name": "xingxu-api",
+  "version": "1.0.0",
+  "description": "星叙项目API",
+  "main": "index.js",
+  "scripts": {
+    "start": "vercel dev",
+    "dev": "vercel dev",
+    "build": "vercel build",
+    "deploy": "vercel --prod"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "vercel": "^28.0.0"
+  }
+}
