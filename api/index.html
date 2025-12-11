@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            margin-bottom: 30px;
+            border: 1px solid #ddd;
+            padding: 15px;
+            border-radius: 5px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>星叙API测试页面</h1>
+    
+    <div class="test-section">
+        <h2>测试星语瓶API</h2>
+        <button onclick="testBottles()">获取星语瓶列表</button>
+        <button onclick="testCreateBottle()">创建新星语瓶</button>
+        <pre id="bottles-result">点击按钮测试API...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试用户认证API</h2>
+        <button onclick="testAuth()">用户登录</button>
+        <pre id="auth-result">点击按钮测试API...</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>测试场景API</h2>
+        <button onclick="testScenes()">获取场景列表</button>
+        <pre id="scenes-result">点击按钮测试API...</pre>
+    </div>
+
+    <script>
+        const API_BASE = window.location.origin;
+        
+        async function testBottles() {
+            try {
+                const response = await fetch(`${API_BASE}/api/bottles`);
+                const data = await response.json();
+                document.getElementById('bottles-result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('bottles-result').textContent = `错误: ${error.message}`;
+            }
+        }
+        
+        async function testCreateBottle() {
+            try {
+                const response = await fetch(`${API_BASE}/api/bottles`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        content: '这是一个测试星语瓶', 
+                        userId: 'HD123456' 
+                    })
+                });
+                const data = await response.json();
+                document.getElementById('bottles-result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('bottles-result').textContent = `错误: ${error.message}`;
+            }
+        }
+        
+        async function testAuth() {
+            try {
+                const response = await fetch(`${API_BASE}/api/auth`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: 'test@example.com' })
+                });
+                const data = await response.json();
+                document.getElementById('auth-result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('auth-result').textContent = `错误: ${error.message}`;
+            }
+        }
+        
+        async function testScenes() {
+            try {
+                const response = await fetch(`${API_BASE}/api/scenes`);
+                const data = await response.json();
+                document.getElementById('scenes-result').textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                document.getElementById('scenes-result').textContent = `错误: ${error.message}`;
+            }
+        }
+    </script>
+</body>
+</html>
