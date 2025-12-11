@@ -87,29 +87,5 @@ export default {
       console.error('发送星语瓶API错误:', error)
       throw error
     }
-  },
-
-  // 示例：添加星语瓶评论
-  async addComment(bottleId, content, userId) {
-    try {
-      const response = await fetch(`${API_BASE_URL}/api/bottles/${bottleId}/comments`, {
-        method: 'POST',
-        headers: { 
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ content, userId })
-      })
-      
-      const data = await response.json()
-      
-      if (!response.ok || !data.success) {
-        throw new Error(data.error || '添加评论失败')
-      }
-      
-      return data
-    } catch (error) {
-      console.error('添加评论API错误:', error)
-      throw error
-    }
   }
 }
